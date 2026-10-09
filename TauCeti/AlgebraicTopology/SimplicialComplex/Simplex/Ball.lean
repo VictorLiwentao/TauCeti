@@ -7,6 +7,7 @@ module
 
 public import TauCeti.AlgebraicTopology.SimplicialComplex.Realization.Finite
 public import TauCeti.Analysis.Convex.CoordinateSimplex
+public import TauCeti.Geometry.Convex.ConvexSpace.Topology
 
 /-!
 # A simplex and its boundary as a ball and its sphere
@@ -175,3 +176,25 @@ theorem realizationTopHomeomorphClosedBall_norm_eq_one_iff (n : ℕ)
     realizationTopHomeomorphCoordinateSimplex_mem_frontier_iff n x
 
 end AbstractSimplicialComplex
+
+namespace PreAbstractSimplicialComplex
+
+open AbstractSimplicialComplex
+
+/-- The polyhedron of any `n`-simplex is homeomorphic to the Euclidean closed `n`-ball,
+inside any ambient weak realization containing it. Unused ambient vertices add no points. -/
+theorem nonempty_homeomorph_simplex_closedBall {ι : Type*}
+    {K : AbstractSimplicialComplex ι} {V : Finset ι} {n : ℕ}
+    (hV : V.card = n + 1) (hK : simplex V ≤ K.toPreAbstractSimplicialComplex) :
+    Nonempty ({x : Realization K // x.1.support ∈ simplex V} ≃ₜ
+      closedBall (0 : EuclideanSpace ℝ (Fin n)) 1) := by
+  classical
+  let e := V.equivFinOfCardEq hV
+  have hface : V ∈ K := hK (self_mem_simplex.mpr (Finset.card_pos.mp (by omega)))
+  exact ⟨(K.simplexRealizationHomeomorph V hface).symm.trans
+    ((Finset.standardSimplexHomeomorph V).trans
+      (e.stdSimplexHomeomorph.trans
+        ((realizationTopHomeomorphStdSimplex (ι := Fin (n + 1))).symm.trans
+        (realizationTopHomeomorphClosedBall n))))⟩
+
+end PreAbstractSimplicialComplex
